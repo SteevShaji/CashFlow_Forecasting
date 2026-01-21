@@ -109,15 +109,48 @@ if df_filtered.empty:
 # =====================================================
 account_fc_all, bank_fc_all = run_baseline_forecasting(df, horizon=60)
 
+# Forecast should always be FUTURE relative to history
+last_hist_date = df["Date"].max()
+
 bank_fc = bank_fc_all[
-    (bank_fc_all["Date"] >= start_date) &
-    (bank_fc_all["Date"] <= end_date)
+    bank_fc_all["Date"] > last_hist_date
 ]
 
 account_fc = account_fc_all[
-    (account_fc_all["Date"] >= start_date) &
-    (account_fc_all["Date"] <= end_date)
+    account_fc_all["Date"] > last_hist_date
 ]
+
+# ==================== STRESS IMPACT ON PROJECTED BALANCE ====================
+if not tomorrow_fc.empty:
+
+    base_inflow = tomorrow_fc["Predicted_Inflow"].iloc[0]
+    base_outflow = tomorrow_fc["Predicted_Outflow"].iloc[0]
+
+    stressed_outflow = base_outflow * (1 + stress_pct / 100)
+
+    projected_balance_base = (
+        current_balance
+        + (base_inflow - base_outflow) / unit_divisor
+    )
+
+    projected_balance_stress = (
+        current_balance
+        + (base_inflow - stressed_outflow) / unit_divisor
+    )
+
+    stress_impact = projected_balance_stress - projected_balance_base
+
+    st.metric(
+        f"Projected Balance Under Stress ({unit_label})",
+        f"{projected_balance_stress:,.2f}",
+        delta=f"{stress_impact:,.2f}"
+    )
+
+    st.caption(
+        f"Impact of {stress_pct}% higher outflows on next-day balance"
+    )
+# =========================================================================== 
+
 
 # =====================================================
 # CONFIDENCE BAND CALCULATION
@@ -404,3 +437,4 @@ st.success(
     "System status: Operational. Forecasts, stress scenarios, and liquidity insights "
     "are based on historical behavior and baseline statistical modeling."
 )
+
