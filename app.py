@@ -328,7 +328,36 @@ else:
     c1, c2, c3 = st.columns(3)
     c1.metric(f"Average Inflow ({unit_label})", f"{avg_inflow:,.2f}")
     c2.metric(f"Average Outflow ({unit_label})", f"{avg_outflow:,.2f}")
-    c3.metric(f"Current Balance ({unit_label})", f"{current_balance:,.2f}")
+    c3.metric(f"Opening Balance for Forecast ({unit_label})", f"{current_balance:,.2f}")
+
+    st.caption(
+    f"Balance as of {acc['Date'].max().date()} — used as forecast starting point"
+    )
+
+    # ==================== ADDED ====================
+if not account_fc.empty:
+    forecast_start = acc["Date"].max()
+    tomorrow = forecast_start + pd.Timedelta(days=1)
+
+    tomorrow_fc = account_fc[
+        (account_fc["Account_ID"] == account_id) &
+        (account_fc["Date"] == tomorrow)
+    ]
+
+    if not tomorrow_fc.empty:
+        projected_balance = (
+            current_balance
+            + (tomorrow_fc["Predicted_Inflow"].iloc[0]
+               - tomorrow_fc["Predicted_Outflow"].iloc[0]) / unit_divisor
+        )
+
+        st.metric(
+            f"Projected Balance (Tomorrow) ({unit_label})",
+            f"{projected_balance:,.2f}"
+        )
+# ==============================================
+
+
 
     st.markdown(f"**Funding Risk Classification:** {risk_level}")
 
@@ -385,3 +414,4 @@ st.success(
     "System status: Operational. Forecasts, stress scenarios, and liquidity insights "
     "are based on historical behavior and baseline statistical modeling."
 )
+
