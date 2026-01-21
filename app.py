@@ -199,6 +199,30 @@ if view_mode == "Bank Level":
 
     st.plotly_chart(fig_net, use_container_width=True)
 
+    # ==================== ADDED ====================
+    st.markdown("#### Inflow vs Outflow (Historical)")
+
+    fig_io = px.bar(
+        bank_hist,
+        x="Date",
+        y=["Inflow_INR", "Outflow_INR"],
+        barmode="group"
+    )
+
+    fig_io.update_yaxes(
+        title=f"Amount ({unit_label})",
+        tickformat=",.2f",
+        separatethousands=True
+    )
+
+    fig_io.update_traces(
+        hovertemplate="Date=%{x}<br>Amount="
+        + unit_label + " %{y:,.2f}<extra></extra>"
+    )
+
+    st.plotly_chart(fig_io, use_container_width=True)
+    # ==============================================
+
     if not bank_fc.empty:
         bank_fc = add_confidence_band(bank_fc, df_filtered)
 
@@ -245,6 +269,30 @@ if view_mode == "Bank Level":
         )
 
         st.plotly_chart(fig_fc, use_container_width=True)
+
+        # ==================== ADDED ====================
+        st.markdown("#### Forecasted Inflow vs Outflow")
+
+        fig_fc_io = px.line(
+            bank_fc,
+            x="Date",
+            y=["Predicted_Inflow", "Predicted_Outflow"],
+            markers=True
+        )
+
+        fig_fc_io.update_yaxes(
+            title=f"Amount ({unit_label})",
+            tickformat=",.2f",
+            separatethousands=True
+        )
+
+        fig_fc_io.update_traces(
+            hovertemplate="Date=%{x}<br>Amount="
+            + unit_label + " %{y:,.2f}<extra></extra>"
+        )
+
+        st.plotly_chart(fig_fc_io, use_container_width=True)
+        # ==============================================
 
     st.markdown("#### Executive Summary")
     st.info(executive_summary(net_position, stress_pct))
@@ -304,6 +352,30 @@ else:
     )
 
     st.plotly_chart(fig_acc, use_container_width=True)
+
+    # ==================== ADDED ====================
+    st.markdown("#### Inflow vs Outflow (Historical)")
+
+    fig_acc_io = px.bar(
+        acc,
+        x="Date",
+        y=["Inflow_INR", "Outflow_INR"],
+        barmode="group"
+    )
+
+    fig_acc_io.update_yaxes(
+        title=f"Amount ({unit_label})",
+        tickformat=",.2f",
+        separatethousands=True
+    )
+
+    fig_acc_io.update_traces(
+        hovertemplate="Date=%{x}<br>Amount="
+        + unit_label + " %{y:,.2f}<extra></extra>"
+    )
+
+    st.plotly_chart(fig_acc_io, use_container_width=True)
+    # ==============================================
 
 # =====================================================
 # APPLICATION FOOTER
