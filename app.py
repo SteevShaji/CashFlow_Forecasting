@@ -341,16 +341,43 @@ else:
         ]
 
         if not tomorrow_fc.empty:
-            projected_balance = (
+            
+            base_inflow = tomorrow_fc["Predicted_Inflow"].iloc[0]
+            base_outflow = tomorrow_fc["Predicted_Outflow"].iloc[0]
+
+            stressed_outflow = base_outflow * (1 + stress_pct / 100)
+
+            # Unstressed projection
+            projected_balance_base = (
                 current_balance
-                + (tomorrow_fc["Predicted_Inflow"].iloc[0]
-                   - tomorrow_fc["Predicted_Outflow"].iloc[0]) / unit_divisor
+                + (base_inflow - base_outflow) / unit_divisor
+            )
+        
+            # Stressed projection
+            projected_balance_stress = (
+                current_balance
+                + (base_inflow - stressed_outflow) / unit_divisor
+            )
+        
+            stress_impact = projected_balance_stress - projected_balance_base
+        
+            c_base, c_stress = st.columns(2)
+        
+            c_base.metric(
+                f"Projected Balance (Tomorrow) ({unit_label})",
+                f"{projected_balance_base:,.2f}"
+            )
+        
+            c_stress.metric(
+                f"Projected Balance Under Stress ({unit_label})",
+                f"{projected_balance_stress:,.2f}",
+                delta=f"{stress_impact:,.2f}"
+            )
+        
+            st.caption(
+                f"Stress scenario assumes {stress_pct}% higher outflows tomorrow"
             )
 
-            st.metric(
-                f"Projected Balance (Tomorrow) ({unit_label})",
-                f"{projected_balance:,.2f}"
-            )
 
     st.markdown(f"**Funding Risk Classification:** {risk_level}")
 
@@ -405,4 +432,5 @@ st.success(
     "System status: Operational. Forecasts, stress scenarios, and liquidity insights "
     "are based on historical behavior and baseline statistical modeling."
 )
+
 
