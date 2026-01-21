@@ -120,38 +120,6 @@ account_fc = account_fc_all[
     account_fc_all["Date"] > last_hist_date
 ]
 
-# ==================== STRESS IMPACT ON PROJECTED BALANCE ====================
-if not tomorrow_fc.empty:
-
-    base_inflow = tomorrow_fc["Predicted_Inflow"].iloc[0]
-    base_outflow = tomorrow_fc["Predicted_Outflow"].iloc[0]
-
-    stressed_outflow = base_outflow * (1 + stress_pct / 100)
-
-    projected_balance_base = (
-        current_balance
-        + (base_inflow - base_outflow) / unit_divisor
-    )
-
-    projected_balance_stress = (
-        current_balance
-        + (base_inflow - stressed_outflow) / unit_divisor
-    )
-
-    stress_impact = projected_balance_stress - projected_balance_base
-
-    st.metric(
-        f"Projected Balance Under Stress ({unit_label})",
-        f"{projected_balance_stress:,.2f}",
-        delta=f"{stress_impact:,.2f}"
-    )
-
-    st.caption(
-        f"Impact of {stress_pct}% higher outflows on next-day balance"
-    )
-# =========================================================================== 
-
-
 # =====================================================
 # CONFIDENCE BAND CALCULATION
 # =====================================================
