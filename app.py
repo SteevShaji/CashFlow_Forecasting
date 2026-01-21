@@ -199,7 +199,6 @@ if view_mode == "Bank Level":
 
     st.plotly_chart(fig_net, use_container_width=True)
 
-    # ==================== ADDED ====================
     st.markdown("#### Inflow vs Outflow (Historical)")
 
     fig_io = px.bar(
@@ -221,7 +220,6 @@ if view_mode == "Bank Level":
     )
 
     st.plotly_chart(fig_io, use_container_width=True)
-    # ==============================================
 
     if not bank_fc.empty:
         bank_fc = add_confidence_band(bank_fc, df_filtered)
@@ -270,7 +268,6 @@ if view_mode == "Bank Level":
 
         st.plotly_chart(fig_fc, use_container_width=True)
 
-        # ==================== ADDED ====================
         st.markdown("#### Forecasted Inflow vs Outflow")
 
         fig_fc_io = px.line(
@@ -292,7 +289,6 @@ if view_mode == "Bank Level":
         )
 
         st.plotly_chart(fig_fc_io, use_container_width=True)
-        # ==============================================
 
     st.markdown("#### Executive Summary")
     st.info(executive_summary(net_position, stress_pct))
@@ -328,7 +324,32 @@ else:
     c1, c2, c3 = st.columns(3)
     c1.metric(f"Average Inflow ({unit_label})", f"{avg_inflow:,.2f}")
     c2.metric(f"Average Outflow ({unit_label})", f"{avg_outflow:,.2f}")
-    c3.metric(f"Current Balance ({unit_label})", f"{current_balance:,.2f}")
+    c3.metric(f"Opening Balance for Forecast ({unit_label})", f"{current_balance:,.2f}")
+
+    st.caption(
+        f"Balance as of {acc['Date'].max().date()} — used as forecast starting point"
+    )
+
+    if not account_fc.empty:
+        forecast_start = acc["Date"].max()
+        tomorrow = forecast_start + pd.Timedelta(days=1)
+
+        tomorrow_fc = account_fc[
+            (account_fc["Account_ID"] == account_id) &
+            (account_fc["Date"] == tomorrow)
+        ]
+
+        if not tomorrow_fc.empty:
+            projected_balance = (
+                current_balance
+                + (tomorrow_fc["Predicted_Inflow"].iloc[0]
+                   - tomorrow_fc["Predicted_Outflow"].iloc[0]) / unit_divisor
+            )
+
+            st.metric(
+                f"Projected Balance (Tomorrow) ({unit_label})",
+                f"{projected_balance:,.2f}"
+            )
 
     st.markdown(f"**Funding Risk Classification:** {risk_level}")
 
@@ -353,7 +374,6 @@ else:
 
     st.plotly_chart(fig_acc, use_container_width=True)
 
-    # ==================== ADDED ====================
     st.markdown("#### Inflow vs Outflow (Historical)")
 
     fig_acc_io = px.bar(
@@ -375,7 +395,6 @@ else:
     )
 
     st.plotly_chart(fig_acc_io, use_container_width=True)
-    # ==============================================
 
 # =====================================================
 # APPLICATION FOOTER
